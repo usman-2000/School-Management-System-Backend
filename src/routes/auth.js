@@ -23,6 +23,16 @@ const {
 
 const { authenticateToken } = require('../middleware/auth');
 
+// Public routes
+router.post('/register', registerValidation, validate, register);
 router.post('/login', loginValidation, validate, login);
+router.post('/forgot-password', forgotPasswordValidation, validate, forgotPassword);
+router.post('/reset-password', resetPasswordValidation, validate, resetPassword);
+router.post('/refresh-token', refreshToken);
+
+// Protected routes
+router.get('/me', authenticateToken, getMe);
+router.post('/change-password', authenticateToken, changePasswordValidation, validate, changePassword);
+router.post('/logout', authenticateToken, logout);
 
 module.exports = router;

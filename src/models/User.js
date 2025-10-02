@@ -1,60 +1,125 @@
-const { sequelize } = require("../config/database");
+const { DataTypes } = require('sequelize');
+const bcrypt = require('bcryptjs');
+const { sequelize } = require('../config/database');
 
-const User = sequelize.define("User", {
+const User = sequelize.define('User', {
   id: {
-    type: require("sequelize").DataTypes.INTEGER,
-    autoIncrement: true,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
-    username: {
-    type: require("sequelize").DataTypes.STRING,
+  username: {
+    type: DataTypes.STRING,
     allowNull: false,
     unique: true,
     validate: {
-        notEmpty: true,
-        len: [3, 50],
+      len: [3, 50],
     },
   },
   email: {
-    type: require("sequelize").DataTypes.STRING,
+    type: DataTypes.STRING,
     allowNull: false,
     unique: true,
     validate: {
       isEmail: true,
     },
-    },
-    password: { 
-    type: require("sequelize").DataTypes.STRING,
+  },
+  password: {
+    type: DataTypes.STRING,
     allowNull: false,
     validate: {
-        notEmpty: true,
-        len: [6, 100],
+      len: [6, 100],
     },
-    },
-    role: {
-    type: require("sequelize").DataTypes.ENUM("admin", "teacher", "student"),
+  },
+  firstName: {
+    type: DataTypes.STRING,
     allowNull: false,
-    defaultValue: "student",
+    validate: {
+      len: [2, 50],
     },
+  },
+  lastName: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      len: [2, 50],
+    },
+  },
+  role: {
+    type: DataTypes.ENUM('admin', 'teacher', 'student', 'parent'),
+    allowNull: false,
+    defaultValue: 'student',
+  },
+  avatar: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  phone: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    validate: {
+      len: [10, 15],
+    },
+  },
+  dateOfBirth: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+  },
+  address: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  isActive: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+  },
+  isVerified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  lastLogin: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  passwordResetToken: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  passwordResetExpires: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  verificationToken: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
 }, {
-  tableName: "users",
+  hooks: {
+    beforeCreate: async (user) => {
+      if (user.password) {
+        user.password = await bcrypt.hash(user.password, 12);
+      }
+    },
+    beforeUpdate: async (user) => {
+      if (user.changed('password')) {
+        user.password = await bcrypt.hash(user.password, 12);
+      }
+    },
+  },
 });
 
+// Instance methods
+User.prototype.comparePassword = async function(candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
+
+User.prototype.toJSON = function() {
+  const values = { ...this.get() };
+  delete values.password;
+  delete values.passwordResetToken;
+  delete values.passwordResetExpires;
+  delete values.verificationToken;
+  return values;
+};
 
 module.exports = User;
-
-// Ensure the model is synced with the database
-User.sync({ alter: process.env.NODE_ENV === 'development' });
-// In development, use 'alter' to update the table structure without dropping it
-
-// In production, consider using migrations for schema changes
-// User.sync(); // Uncomment this line for production use, but be cautious as it may drop existing data
-// User.sync({ force: true }); // Use with caution: this will drop the table if it exists
-// and recreate it, leading to data loss.
-// Always back up your data before running such operations in a production environment.
-// For production, it's recommended to use a migration tool like Sequelize CLI or Umzug
-// to manage schema changes safely.
-// This ensures that the model is in sync with the database schema.
-// Always back up your data before running such operations in a production environment.
-// For production, it's recommended to use a migration tool like Sequelize CLI or Umzug
-// to manage schema changes safely.
