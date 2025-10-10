@@ -13,7 +13,7 @@ const Student = sequelize.define('Student', {
     unique: true,
   },
   userId: {
-    type: DataTypes.UUID,
+    type: DataTypes.STRING(36),
     allowNull: false,
     references: {
       model: 'Users',
