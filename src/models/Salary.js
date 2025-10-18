@@ -31,7 +31,22 @@ const Salary = sequelize.define('Salary', {
 });
 
 // Associations
-Salary.belongsTo(Teacher, { foreignKey: 'teacher_id', as: 'teacher' });
-Teacher.hasMany(Salary, { foreignKey: 'teacher_id', as: 'salaryRecords' });
+Salary.belongsTo(Teacher, {
+  foreignKey: {
+    name: 'teacher_id',
+    allowNull: false,
+  },
+  as: 'teacher',
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
+});
+
+Teacher.hasMany(Salary, {
+  foreignKey: {
+    name: 'teacher_id',
+    allowNull: false,
+  },
+  as: 'salaryRecords',
+});
 
 module.exports = Salary;

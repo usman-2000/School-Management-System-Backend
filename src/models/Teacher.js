@@ -45,6 +45,16 @@ const Teacher = sequelize.define('Teacher', {
     type: DataTypes.DATEONLY,
     allowNull: true,
   },
+  role_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true, // ✅ MUST be true for ON DELETE SET NULL
+    references: {
+      model: Role,
+      key: 'role_id',
+    },
+    onDelete: 'SET NULL',
+    onUpdate: 'CASCADE',
+  },
 }, {
   tableName: 'teachers',
   timestamps: true,    // enables createdAt + updatedAt
@@ -54,7 +64,8 @@ const Teacher = sequelize.define('Teacher', {
 // Associations
 Teacher.belongsTo(Role, {
   foreignKey: 'role_id',
-  as: 'role',
+  onDelete: 'SET NULL',
+  onUpdate: 'CASCADE',
 });
 
 module.exports = Teacher;

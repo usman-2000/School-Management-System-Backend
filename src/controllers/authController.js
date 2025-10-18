@@ -1,14 +1,14 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { User } = require('../models');
-const { 
-  sendWelcomeEmail, 
-  sendPasswordResetEmail, 
-  sendPasswordChangedEmail 
+const {
+  sendWelcomeEmail,
+  sendPasswordResetEmail,
+  sendPasswordChangedEmail
 } = require('../utils/email');
-const { 
-  generateRandomToken, 
-  formatResponse 
+const {
+  generateRandomToken,
+  formatResponse
 } = require('../utils/helper');
 
 // Generate JWT token
@@ -104,12 +104,14 @@ const login = async (req, res) => {
     // Find user by username or email
     const user = await User.findOne({
       where: {
-        $or: [
-          { username },
-          { email: username },
-        ],
+        username,
+        // email: username
+        // password
+
       },
     });
+
+    console.log("user", user);
 
     if (!user) {
       return res.status(401).json(
@@ -123,9 +125,9 @@ const login = async (req, res) => {
         formatResponse(false, 'Account is deactivated. Please contact administrator.', null, 401)
       );
     }
-
     // Verify password
     const isPasswordValid = await user.comparePassword(password);
+    console.log("PASSOWRD ", isPasswordValid)
     if (!isPasswordValid) {
       return res.status(401).json(
         formatResponse(false, 'Invalid credentials', null, 401)
@@ -179,7 +181,7 @@ const forgotPassword = async (req, res) => {
     // Send email
     try {
       await sendPasswordResetEmail(user, resetToken);
-      
+
       res.json(
         formatResponse(true, 'Password reset email sent successfully')
       );
@@ -189,7 +191,7 @@ const forgotPassword = async (req, res) => {
         passwordResetToken: null,
         passwordResetExpires: null,
       });
-      
+
       console.error('Email sending failed:', emailError);
       return res.status(500).json(
         formatResponse(false, 'Error sending password reset email', null, 500)
